@@ -3,330 +3,496 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Light+ Brand Repositioning Analysis</title>
+    <title>Strategic Dashboard - Wardah Analysis</title>
+    <!-- Memuat Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals (Stone, Teal Accent) -->
-    <!-- Application Structure Plan: A single-page, top-to-bottom narrative structure. This was chosen because the source report is a strategic argument (Problem -> Analysis -> Solution). This flow guides the user logically through the diagnosis, the visual evidence (the map), and the proposed strategic pivot. The key interaction is a button to reveal the new "Smart Collaborator" position on the map, providing a powerful before-and-after visualization. -->
-    <!-- Visualization & Content Choices: Report Info: Perceptual Map (X: Price/Science, Y: Authoritative/Relatable). Goal: Visually prove the "squeezed middle" problem and identify the "white space". Viz/Presentation: Chart.js Scatter plot (Canvas). Interaction: A "Reveal Position" button adds the new "Smart Collaborator" data point to the chart via JS, triggering chart.update(). Justification: This directly visualizes the report's central argument, making the strategic opportunity tangible. Other text is in semantic HTML blocks. CONFIRMS NO SVG/Mermaid. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- Memuat Font Awesome (untuk ikon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Menggunakan font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #fdfcfb;
-            color: #292524;
+            background-color: #f3f4f6; /* gray-100 */
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 400px;
-            max-height: 500px;
+        
+        /* === STYLE TAB === */
+        .tab-button {
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid transparent;
+            border-bottom: 1px solid #d1d5db; /* gray-300 */
+            background-color: #f9fafb; /* gray-50 */
+            color: #6b7280; /* gray-500 */
+            cursor: pointer;
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 500px;
-            }
+        .tab-button.active {
+            background-color: white;
+            color: #1d4ed8; /* blue-700 */
+            border-color: #d1d5db; /* gray-300 */
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
         }
-        .tagline {
-            background-color: #f5f5f4;
-            border-left: 4px solid #f97316;
-            padding: 1rem;
-            margin: 1.5rem 0;
+        .tab-button:not(.active):hover {
+            background-color: #f0f9ff; /* blue-50 */
+            color: #1d4ed8;
         }
-        .tagline-new {
-            background-color: #ccfbf1;
-            border-left: 4px solid #0d9488;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
+        
+        .tab-panel {
+            display: none; /* Disembunyikan secara default */
+            background-color: white;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-top: none;
+            padding: 2rem;
+            border-radius: 0 0 8px 8px;
         }
-        .formula-card {
-            background-color: #f0fdfa;
-            border: 1px solid #5eead4;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            text-align: center;
+        .tab-panel.active {
+            display: block; /* Ditampilkan saat aktif */
+        }
+
+        /* === STYLE PETA (Dibutuhkan oleh peta) === */
+        #map1-container .brand-point,
+        #map2-container .brand-point {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        #map1-container .brand-point:hover,
+        #map2-container .brand-point:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        #map1-container .brand-point .dot,
+        #map2-container .brand-point .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 9999px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #map1-container .brand-point .label,
+        #map2-container .brand-point .label {
+            margin-left: 8px;
+            font-size: 0.875rem; /* 14px */
+            font-weight: 600;
+            color: #374151; /* gray-700 */
+            background-color: rgba(255, 255, 255, 0.75);
+            padding: 2px 6px;
+            border-radius: 4px;
+            backdrop-filter: blur(2px);
+            white-space: nowrap;
+        }
+        
+        .zone-highlight {
+            transition: all 0.3s ease;
+        }
+        .zone-highlight:hover {
+            opacity: 0.25 !important;
+            border-width: 2px;
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="p-6 md:p-10">
 
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        
-        <header class="text-center mb-12 md:mb-16">
-            <h1 class="text-3xl md:text-5xl font-bold text-stone-900 tracking-tight">
-                Light+ Brand Repositioning
-            </h1>
-            <p class="mt-4 text-lg md:text-xl text-stone-600">
-                An interactive analysis of the strategic pivot to "Smart Collaborator".
-            </p>
-        </header>
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800">
+            Strategic Analysis Dashboard
+        </h1>
+        <p class="text-lg text-center text-gray-600 mb-8">
+            Wardah Market Repositioning ('Brightening' & 'Hybrid')
+        </p>
 
-        <main class="space-y-12 md:space-y-16">
+        <!-- === NAVIGASI TAB === -->
+        <div class="flex border-b border-gray-300" id="tab-navigation">
+            <button class="tab-button active" data-tab="finding">
+                <i class="fa-solid fa-lightbulb mr-2"></i>Key Findings
+            </button>
+            <button class="tab-button" data-tab="map1">
+                <i class="fa-solid fa-map-location-dot mr-2"></i>Map 1: Brightening
+            </button>
+            <button class="tab-button" data-tab="map2">
+                <i class="fa-solid fa-map-location-dot mr-2"></i>Map 2: Hybrid
+            </button>
+            <button class="tab-button" data-tab="recs">
+                <i class="fa-solid fa-bullseye mr-2"></i>Recommendations
+            </button>
+            <button class="tab-button" data-tab="plan">
+                <i class="fa-solid fa-table-list mr-2"></i>Action Plan
+            </button>
+        </div>
 
-            <!-- Section 1: The Core Problem -->
-            <section id="problem">
-                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
-                    1. The Diagnosis: A "Squeezed Middle"
-                </h2>
-                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
-                    <p>
-                        Our analysis confirms Light+ is in a vulnerable "squeezed middle" position. It is trapped in a "red ocean" between dominant "Clinical Titans" (like Skintific) and high-volume "Value Leaders" (like Garnier), while simultaneously causing brand confusion and cannibalization with its parent company, Wardah.
-                    </p>
-                    <p>
-                        The root cause is a catastrophic failure in positioning, not product. The brand's valuable "smart" assets (Nano Niacinamide, Blue Light Protection) and its unique "relatable" asset (the Gen Z co-creation story) are completely obscured by its current tagline.
-                    </p>
-                    <blockquote class="tagline">
-                        <p class="text-xl md:text-2xl font-semibold text-stone-700 italic">"Every Side Has Its Light"</p>
-                        <p class="mt-2 text-stone-600 font-medium">— Current Tagline: Poetic, Ambiguous, Ineffective</p>
-                    </blockquote>
-                    <p>
-                        This ambiguity prevents the brand from communicating any clear value, forcing it to compete on a generic "Halal" message which is now considered "table stakes" in the market.
-                    </p>
-                </div>
-            </section>
+        <!-- === KONTEN TAB === -->
+        <div id="tab-content">
 
-            <!-- Section 2: The Competitive Landscape -->
-            <section id="landscape">
-                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
-                    2. The Landscape: Visualizing the Gap
-                </h2>
-                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
-                    <p>
-                        The following perceptual map provides visual proof of this market failure and the clear opportunity that exists. The map plots competitor brands along the two key dimensions Gen Z uses for evaluation:
-                    </p>
-                    <ul class="list-disc list-inside space-y-1">
-                        <li><strong class="font-semibold">Value Proposition (X-Axis):</strong> From "Price-Driven" (left) to "Science-Driven" (right).</li>
-                        <li><strong class="font-semibold">Brand Persona (Y-Axis):</strong> From "Bottom-Up/Relatable" (bottom) to "Top-Down/Authoritative" (top).</li>
-                    </ul>
-                    <p>
-                        The chart shows saturated quadrants for "Clinical Titans" and "Price-Driven Besties". Light+'s current, ambiguous position leaves it stranded in the middle, while a valuable "white space" remains completely unoccupied.
-                    </p>
-                </div>
-
-                <div class="mt-8">
-                    <div class="chart-container bg-white rounded-lg shadow-lg p-4">
-                        <canvas id="perceptualMap"></canvas>
-                    </div>
-                </div>
+            <!-- ======================= -->
+            <!-- === TAB: TEMUAN KUNCI === -->
+            <!-- ======================= -->
+            <div id="finding" class="tab-panel active">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">A Positioning Failure, Not a Product Failure</h2>
+                <blockquote class="p-6 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 text-lg italic rounded-r-lg">
+                    "This finding is critical. Wardah is fighting on the wrong battlefield. The real opportunity, revealed by the gaps in <strong>both</strong> maps, is to <strong>combine</strong> them."
+                </blockquote>
                 
-                <div class="mt-6 text-center">
-                    <button id="revealButton" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-teal-700 transition-all duration-300 transform hover:scale-105">
-                        Click to Reveal the "Smart Collaborator" Position
-                    </button>
-                </div>
-            </section>
-
-            <!-- Section 3: The Strategic Pivot -->
-            <section id="pivot">
-                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
-                    3. The Pivot: The "Smart Collaborator"
-                </h2>
-                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
-                    <p>
-                        The unoccupied bottom-right quadrant represents our "white space." This is the "Smart Collaborator": a consumer persona who wants the high efficacy and science of an expert brand, but demands the authenticity and relatability of a peer.
+                <div class="mt-6 text-gray-700 space-y-4 text-base leading-relaxed">
+                    <p>The "Skinimalism" trend demands <strong>fewer</strong> products that do <strong>more</strong>. The map analysis shows:
+                    <ul class="list-disc list-inside ml-4 space-y-2 mt-2">
+                        <li><strong>Map 1 (Brightening):</strong> Wardah is losing the "clinical" claim against Skintific and Somethinc.</li>
+                        <li><strong>Map 2 (Hybrid):</strong> There is a massive gap for "skincare-first" hybrid products.</li>
+                    </ul>
                     </p>
-                    <p>
-                        We must pivot from the generic "Halal" message to fill this clear market gap. The new positioning will be built on a simple, powerful, and defensible identity:
+                    <p class="font-semibold text-gray-900">
+                        Wardah's 'Light+' line has "active care" (Advanced Niacinamide) <strong>and</strong> "hybrid" benefits (Blue Light Protection).
                     </p>
-                    <p class="text-center text-xl md:text-2xl font-bold text-teal-700 bg-teal-50 p-4 rounded-md">
-                        Halal + Gen Z Authentic + High Efficacy
-                    </p>
-                    <p>
-                        This new position is unique, highly valuable, and solves all internal cannibalization risks by giving Light+ a clear and distinct identity from Wardah.
+                    <p class="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+                        <strong class="font-bold block text-xl">Conclusion:</strong> The 'Light+' line <strong>is already</strong> a "skincare-first hybrid". However, Wardah is positioning it as a traditional "brightening cream". This is a catastrophic failure of <strong>positioning</strong>, not <strong>product</strong>.
                     </p>
                 </div>
-            </section>
+            </div>
 
-            <!-- Section 4: The New Formula -->
-            <section id="formula">
-                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
-                    4. The Formula: "Light + You"
-                </h2>
-                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
-                    <p>
-                        This entire repositioning strategy is distilled into one active, memorable, and defensible tagline. This new tagline *is* our formula:
-                    </p>
-                    <blockquote class="tagline-new">
-                        <p class="text-3xl md:text-4xl font-bold text-stone-800 text-center">"Light + You"</p>
-                    </blockquote>
-                    <p>
-                        It is a simple equation that communicates our entire brand story, combining our two core assets:
-                    </p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div class="formula-card">
-                            <span class="text-6xl">💡</span>
-                            <h3 class="text-3xl font-bold text-teal-800 mt-2">Light</h3>
-                            <p class="text-lg text-teal-700 mt-2">
-                                Represents our "smart" assets: hybrid science, Nano Niacinamide, and Blue Light Protection.
-                            </p>
+            <!-- ============================ -->
+            <!-- === TAB: PETA 1 (BRIGHTENING) === -->
+            <!-- ============================ -->
+            <div id="map1" class="tab-panel">
+                <!-- Konten Peta 1 akan dimasukkan di sini oleh JS -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Kolom Peta (2/3) -->
+                    <div class="lg:col-span-2 bg-white relative min-h-[600px] flex items-center justify-center border rounded-lg p-4 sm:p-8 shadow-inner">
+                        <div id="map1-container" class="relative w-full h-full max-w-2xl aspect-square cursor-pointer" title="Klik area kosong untuk reset">
+                            <!-- Sumbu X -->
+                            <div class="absolute top-1/2 left-0 w-full h-0.5 bg-gray-300 -translate-y-1/2"></div>
+                            <!-- Sumbu Y -->
+                            <div class="absolute left-1/2 top-0 h-full w-0.5 bg-gray-300 -translate-x-1/2"></div>
+                            <!-- Label Sumbu -->
+                            <span class="absolute top-4 left-1/2 -translate-x-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white px-2 rounded">Premium / Cult Status</span>
+                            <span class="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white px-2 rounded">Accessible / Mass Market</span>
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white py-2 rounded max-w-[80px] sm:max-w-none text-center">Gentle / Holistic / Halal</span>
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white py-2 rounded max-w-[80px] sm:max-w-none text-center">Clinical / Ingredient-Based</span>
+                            <!-- Zona Highlight -->
+                            <div class="zone-highlight absolute top-0 left-0 w-1/2 h-1/2 bg-gray-500 opacity-10 border-gray-400 border-dashed cursor-pointer rounded-tl-lg" data-zone="white-space" title="White Space"></div>
+                            <div class="zone-highlight absolute top-0 right-0 w-1/2 h-full bg-blue-500 opacity-10 border-blue-400 border-dashed cursor-pointer rounded-r-lg" data-zone="genz-zone" title="Gen Z Hot Zone"></div>
+                            <div class="zone-highlight absolute bottom-0 left-0 w-1/2 h-1/2 bg-red-500 opacity-10 border-red-400 border-dashed cursor-pointer rounded-bl-lg" data-zone="red-ocean" title="Red Ocean"></div>
+                            <!-- Titik Merek -->
+                            <div class="brand-point" style="top: 80%; left: 15%;" data-brand="wardah" title="Light+ by Wardah"><div class="dot" style="background-color: #4A90E2;"></div><span class="label">Wardah</span></div>
+                            <div class="brand-point" style="top: 85%; left: 20%;" data-brand="garnier" title="Garnier"><div class="dot" style="background-color: #7ED321;"></div><span class="label">Garnier</span></div>
+                            <div class="brand-point" style="top: 75%; left: 75%;" data-brand="skintific" title="Skintific"><div class="dot" style="background-color: #D0021B;"></div><span class="label">Skintific</span></div>
+                            <div class="brand-point" style="top: 20%; left: 80%;" data-brand="somethinc" title="Somethinc"><div class="dot" style="background-color: #9013FE;"></div><span class="label">Somethinc</span></div>
+                            <div class="zone-highlight absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-4 border-dashed border-yellow-500 flex items-center justify-center cursor-pointer bg-yellow-400 bg-opacity-10" data-zone="bridge-pos" title="Bridge Position"><div class="w-2 h-2 bg-yellow-600 rounded-full"></div><span class="absolute top-full mt-1 text-xs font-semibold text-yellow-700 whitespace-nowrap">Bridge Position</span></div>
                         </div>
-                        <div class="formula-card">
-                            <span class="text-6xl">👥</span>
-                            <h3 class="text-3xl font-bold text-teal-800 mt-2">You</h3>
-                            <p class="text-lg text-teal-700 mt-2">
-                                Represents our "relatable" asset: our authentic, bottom-up Gen Z co-creation community.
-                            </p>
+                    </div>
+                    <!-- Kolom Analisis -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-gray-50 p-6 rounded-lg shadow-inner sticky top-10 border">
+                            <h2 class="text-2xl font-bold mb-4">Analysis & Insights</h2>
+                            <div id="analysis-content-map1" class="min-h-[200px] text-gray-700">
+                                <p>Click a brand or zone on the map for details.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-        </main>
+            <!-- ======================== -->
+            <!-- === TAB: PETA 2 (HYBRID) === -->
+            <!-- ======================== -->
+            <div id="map2" class="tab-panel">
+                <!-- Konten Peta 2 akan dimasukkan di sini oleh JS -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Kolom Peta (2/3) -->
+                    <div class="lg:col-span-2 bg-white relative min-h-[600px] flex items-center justify-center border rounded-lg p-4 sm:p-8 shadow-inner">
+                        <div id="map2-container" class="relative w-full h-full max-w-2xl aspect-square cursor-pointer" title="Klik area kosong untuk reset">
+                            <!-- Sumbu X -->
+                            <div class="absolute top-1/2 left-0 w-full h-0.5 bg-gray-300 -translate-y-1/2"></div>
+                            <!-- Sumbu Y -->
+                            <div class="absolute left-1/2 top-0 h-full w-0.5 bg-gray-300 -translate-x-1/2"></div>
+                            <!-- Label Sumbu -->
+                            <span class="absolute top-4 left-1/2 -translate-x-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white px-2 rounded">Active / Treatment-Grade</span>
+                            <span class="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white px-2 rounded">Basic / Moisturizing</span>
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white py-2 rounded max-w-[80px] sm:max-w-none text-center">Makeup-First</span>
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-semibold text-gray-600 bg-white py-2 rounded max-w-[80px] sm:max-w-none text-center">Skincare-First</span>
+                            <!-- Zona Highlight -->
+                            <div class="zone-highlight absolute top-0 left-0 w-1/2 h-full bg-blue-500 opacity-10 border-blue-400 border-dashed cursor-pointer rounded-l-lg" data-zone="skinimalism" title="Skinimalism Trend"></div>
+                            <div class="zone-highlight absolute top-0 right-0 w-1/2 h-full bg-gray-500 opacity-10 border-gray-400 border-dashed cursor-pointer rounded-r-lg" data-zone="white-space" title="White Space"></div>
+                            <!-- Titik Merek -->
+                            <div class="brand-point" style="top: 80%; left: 20%;" data-brand="wardah-insta" title="Wardah (Instaperfect)"><div class="dot" style="background-color: #4A90E2;"></div><span class="label">Wardah (Instaperfect)</span></div>
+                            <div class="brand-point" style="top: 25%; left: 25%;" data-brand="esqa" title="ESQA"><div class="dot" style="background-color: #E57373;"></div><span class="label">ESQA</span></div>
+                            <div class="brand-point" style="top: 20%; left: 20%;" data-brand="skintific" title="Skintific"><div class="dot" style="background-color: #D0021B;"></div><span class="label">Skintific</span></div>
+                            <div class="zone-highlight absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full border-4 border-dashed border-yellow-500 flex items-center justify-center cursor-pointer bg-yellow-400 bg-opacity-10" data-zone="lightplus-absence" title="'Light+'?"><div class="w-2 h-2 bg-yellow-600 rounded-full"></div><span class="absolute top-full mt-1 text-xs font-semibold text-yellow-700 whitespace-nowrap">'Light+'?</span></div>
+                        </div>
+                    </div>
+                    <!-- Kolom Analisis -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-gray-50 p-6 rounded-lg shadow-inner sticky top-10 border">
+                            <h2 class="text-2xl font-bold mb-4">Analysis & Insights</h2>
+                            <div id="analysis-content-map2" class="min-h-[200px] text-gray-700">
+                                <p>Click a brand or zone on the map for details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <footer class="mt-16 md:mt-24 border-t border-stone-300 pt-8 text-center">
-            <p class="text-sm text-stone-500">End of Analysis. This interactive report demonstrates the strategic pivot for Light+.</p>
-        </footer>
+            <!-- ============================ -->
+            <!-- === TAB: REKOMENDASI === -->
+            <!-- ============================ -->
+            <div id="recs" class="tab-panel">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">VI. Strategic Recommendations: Pivot to 'Halal-Science' Dominance</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- REKOMENDASI 1 -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-6 flex flex-col">
+                        <div class="text-center">
+                            <i class="fa-solid fa-compass text-4xl text-blue-600 mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">1. "Halal-Science" Repositioning</h3>
+                        </div>
+                        <dl class="mt-4 space-y-3">
+                            <dt class="font-semibold text-gray-700">Rationale ("Why"):</dt>
+                            <dd class="text-gray-600 text-sm">"Halal" positioning is the baseline. The "Blue Light Protection" USP is the "science-clinical" differentiator that appeals to Gen Z.</dd>
+                            
+                            <dt class="font-semibold text-gray-700">How ("How"):</dt>
+                            <dd class="text-gray-600 text-sm">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Make "Blue Light Protection" the lead message.</li>
+                                    <li>Reposition as "Digital Era Skin Shield".</li>
+                                    <li>Shift narrative from "brightening" to "active protection & repair".</li>
+                                </ul>
+                            </dd>
+                            
+                            <dt class="font-semibold text-gray-700">Goal ("Goal"):</dt>
+                            <dd class="text-gray-600 text-sm">Move Wardah (on Map 1) to the new, unique 'Science-Clinical/Mass' "bridge" position.</dd>
+                        </dl>
+                    </div>
 
-    </div>
+                    <!-- REKOMENDASI 2 -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-6 flex flex-col">
+                        <div class="text-center">
+                            <i class="fa-solid fa-vial-circle-check text-4xl text-green-600 mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">2. NPD: 'Light+ Hybrid'</h3>
+                        </div>
+                        <dl class="mt-4 space-y-3">
+                            <dt class="font-semibold text-gray-700">Rationale ("Why"):</dt>
+                            <dd class="text-gray-600 text-sm">Map 2 identified a clear "white space" for "skincare-first" hybrid products.</dd>
+                            
+                            <dt class="font-semibold text-gray-700">How ("How"):</dt>
+                            <dd class="text-gray-600 text-sm">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Launch a 'Light+ Glowshot Serum Tint SPF 50' SKU.</li>
+                                    <li>Combine all USPs: Niacinamide + Blue Light Protection + SPF + Light Tint.</li>
+                                </ul>
+                            </dd>
+                            
+                            <dt class="font-semibold text-gray-700">Goal ("Goal"):</dt>
+                            <dd class="text-gray-600 text-sm">Launch a 3-in-1 (Brighten, Protect, Perfect) "hero" product to fill the gap in Map 2.</dd>
+                        </dl>
+                    </div>
+
+                    <!-- REKOMENDASI 3 -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-6 flex flex-col">
+                        <div class="text-center">
+                            <!-- Menggunakan ikon Font Awesome Brands -->
+                            <i class="fa-brands fa-tiktok text-4xl text-black mb-4"></i>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">3. Gen Z Re-Communication</h3>
+                        </div>
+                        <dl class="mt-4 space-y-3">
+                            <dt class="font-semibold text-gray-700">Rationale ("Why"):</dt>
+                            <dd class="text-gray-600 text-sm">Legacy/mass communication no longer resonates. Losing on TikTok, Gen Z's primary discovery channel.</dd>
+                            
+                            <dt class="font-semibold text-gray-700">How ("How"):</dt>
+                            <dd class="text-gray-600 text-sm">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Pivot to "skin-fluencers" (ingredient-focused).</li>
+                                    <li>TikTok Campaign: "Show, Don't Tell" (efficacy demos).</li>
+                                    <li>Themes: "3-in-1 Skinimalism", "Your phone is aging you".</li>
+                                </ul>
+                            </dd>
+                            
+                            <dt class="font-semibold text-gray-700">Goal ("Goal"):</dt>
+                            <dd class="text-gray-600 text-sm">Regain credibility and "hype" with Gen Z by speaking their language on their platform.</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================= -->
+            <!-- === TAB: RENCANA AKSI === -->
+            <!-- ========================= -->
+            <div id="plan" class="tab-panel">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Table 3: Strategic Repositioning Action Plan</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto border-collapse border border-gray-300">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 border border-gray-300">Recommendation</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 border border-gray-300">Strategic Objective</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 border border-gray-300">Key Actions</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 border border-gray-300">Key Departments</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700 border border-gray-300">Key Performance Indicators (KPIs)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-3 border border-gray-300 align-top"><strong>1. "Halal-Science" Repositioning</strong></td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">Shift brand perception from 'Gentle' to 'Science-Clinical'.</td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">
+                                    <ul class="list-disc list-inside">
+                                        <li>Overhaul packaging & messaging to highlight "Blue Light Protection".</li>
+                                        <li>Retrain sales teams/BAs on the new USP.</li>
+                                    </ul>
+                                </td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">Marketing, Branding</td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">Increased "Innovative" & "Scientific" scores in brand tracking.</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 border border-gray-300 align-top"><strong>2. NPD: 'Light+ Hybrid'</strong></td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">Fill the 'Skincare-First' & 'Active' "white space" in Map 2.</td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">
+                                    <ul class="list-disc list-inside">
+                                        <li>R&D: Formulate 3-in-1 serum tint (Brighten, Protect, Perfect).</li>
+                                        <li>Fast-track "hero" product launch.</li>
+                                    </ul>
+                                </td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">R&D, Product Marketing</td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">
+                                    <ul class="list-disc list-inside">
+                                        <li>Market share in the "hybrid/skin tint" segment.</li>
+                                        <li>New product adoption rate.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 border border-gray-300 align-top"><strong>3. Gen Z Re-Communication</strong></td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">Build efficacy credibility on TikTok.</td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">
+                                    <ul class="list-disc list-inside">
+                                        <li>Contract 10 "skin-fluencers" (ingredient-focused).</li>
+                                        <li>Create "demo-efficacy" TikTok campaign.</li>
+                                    </ul>
+                                </td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">Digital Marketing, PR</td>
+                                <td class="px-4 py-3 border border-gray-300 align-top">
+                                    <ul class="list-disc list-inside">
+                                        <li>Increased Share of Voice (SoV) on TikTok.</li>
+                                        <li>Increased conversion rate from TikTok.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> <!-- /Konten Tab -->
+    </div> <!-- /Container Utama -->
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const ctx = document.getElementById('perceptualMap').getContext('2d');
+        // === LOGIKA TAB ===
+        const tabNavigation = document.getElementById('tab-navigation');
+        const tabPanels = document.getElementById('tab-content').querySelectorAll('.tab-panel');
+        const tabButtons = tabNavigation.querySelectorAll('.tab-button');
 
-            const competitorData = {
-                label: 'Current Market',
-                data: [
-                    { x: 8, y: 7, r: 15, label: 'Skintific (Clinical Titan)' },
-                    { x: -6, y: 5, r: 12, label: 'Garnier (Value Leader)' },
-                    { x: -7, y: -6, r: 10, label: 'Emina (Price-Driven Bestie)' },
-                    { x: 2, y: 6, r: 10, label: 'Wardah (Parent Brand)' },
-                    { x: 1, y: 2, r: 8, label: 'Light+ (Current Position)' }
-                ],
-                backgroundColor: 'rgba(113, 113, 122, 0.6)',
-                borderColor: 'rgba(82, 82, 91, 1)',
-                borderWidth: 1
-            };
+        // Variabel untuk melacak inisialisasi peta
+        let map1Initialized = false;
+        let map2Initialized = false;
 
-            const newData = {
-                label: 'Smart Collaborator (New Position)',
-                data: [
-                    { x: 7, y: -7, r: 20, label: 'Light + You (Smart Collaborator)' }
-                ],
-                backgroundColor: 'rgba(13, 148, 136, 0.7)',
-                borderColor: 'rgba(15, 118, 110, 1)',
-                borderWidth: 2,
-            };
+        tabNavigation.addEventListener('click', (e) => {
+            const clickedButton = e.target.closest('.tab-button');
+            if (!clickedButton) return;
 
-            const drawQuadrantLabels = (chart) => {
-                const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
-                ctx.save();
-                
-                const xCenter = x.getPixelForValue(0);
-                const yCenter = y.getPixelForValue(0);
+            const tabId = clickedButton.dataset.tab;
 
-                ctx.strokeStyle = '#e5e5e5';
-                ctx.lineWidth = 1;
-                
-                ctx.beginPath();
-                ctx.moveTo(xCenter, top);
-                ctx.lineTo(xCenter, bottom);
-                ctx.stroke();
+            // Nonaktifkan semua
+            tabButtons.forEach(button => button.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
 
-                ctx.beginPath();
-                ctx.moveTo(left, yCenter);
-                ctx.lineTo(right, yCenter);
-                ctx.stroke();
+            // Aktifkan yang diklik
+            clickedButton.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
 
-                ctx.fillStyle = 'rgba(68, 64, 60, 0.6)';
-                ctx.font = '600 12px Inter';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                ctx.fillText('Clinical Titans', (xCenter + right) / 2, (top + yCenter) / 2);
-                ctx.fillText('Value Leaders', (left + xCenter) / 2, (top + yCenter) / 2);
-                ctx.fillText('Price-Driven Besties', (left + xCenter) / 2, (yCenter + bottom) / 2);
-                
-                ctx.fillStyle = '#0d9488';
-                ctx.font = '700 14px Inter';
-                ctx.fillText('THE WHITE SPACE', (xCenter + right) / 2, (yCenter + bottom) / 2);
-                
-                ctx.restore();
-            };
-
-            const mapChart = new Chart(ctx, {
-                type: 'bubble',
-                data: {
-                    datasets: [competitorData]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: '← Price-Driven  |  Value Proposition  |  Science-Driven →',
-                                font: { size: 14, weight: '600' },
-                                color: '#57534e'
-                            },
-                            min: -10,
-                            max: 10,
-                            ticks: { display: false },
-                            grid: { display: false }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: '← Bottom-Up/Relatable  |  Brand Persona  |  Top-Down/Authoritative →',
-                                font: { size: 14, weight: '600' },
-                                color: '#57534e'
-                            },
-                            min: -10,
-                            max: 10,
-                            ticks: { display: false },
-                            grid: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: { size: 12 },
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'rectRounded'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.raw.label;
-                                }
-                            },
-                            bodyFont: { size: 14, weight: 'bold' },
-                            padding: 12,
-                            backgroundColor: '#292524',
-                            titleColor: '#fdfcfb',
-                            bodyColor: '#fdfcfb',
-                            displayColors: false
-                        }
-                    }
-                },
-                plugins: [{
-                    id: 'quadrantLabels',
-                    afterDraw: drawQuadrantLabels
-                }]
-            });
-
-            const revealButton = document.getElementById('revealButton');
-            let isRevealed = false;
-
-            revealButton.addEventListener('click', () => {
-                if (isRevealed) return;
-
-                mapChart.data.datasets.push(newData);
-                mapChart.update();
-                
-                revealButton.textContent = '✓ "Smart Collaborator" Position Revealed';
-                revealButton.classList.remove('bg-teal-600', 'hover:bg-teal-700', 'hover:scale-105');
-                revealButton.classList.add('bg-orange-500', 'cursor-default');
-                isRevealed = true;
-            });
+            // Inisialisasi Peta saat tab diklik (hanya sekali)
+            if (tabId === 'map1' && !map1Initialized) {
+                initMap1();
+                map1Initialized = true;
+            }
+            if (tabId === 'map2' && !map2Initialized) {
+                initMap2();
+                map2Initialized = true;
+            }
         });
+
+        <!-- === LOGIKA PETA 1 === -->
+        function initMap1() {
+            const analysisDataMap1 = {
+                'wardah': { title: 'Light+ by Wardah', color: '#4A90E2', content: "Positioned in the 'Gentle/Holistic' & 'Accessible/Mass Market' quadrant. It's the trusted, affordable, and gentle Halal option." },
+                'garnier': { title: 'Garnier', color: '#7ED321', content: "Very close to Wardah, slightly more 'Mass Market' and less 'Holistic' (more 'mass-science')." },
+                'skintific': { title: 'Skintific', color: '#D0021B', content: "Squarely in the 'Clinical/Ingredient-Based' & 'Accessible/Mass Market' quadrant. Has defined this space." },
+                'somethinc': { title: 'Somethinc', color: '#9013FE', content: "Positioned in the 'Clinical/Ingredient-Based' & 'Premium/Cult Status' quadrant. Has premium 'hype'." },
+                'red-ocean': { title: '"Squeezed Middle" (Red Ocean)', color: '#EF4444', content: "Wardah and Garnier are clustered in the 'red ocean' of low price and low differentiation." },
+                'genz-zone': { title: '"Gen Z Hot Zone" (Clinical)', color: '#3B82F6', content: "The 'Clinical' side is where Gen Z's 'ingredient-intellectual' interest lies. Wardah isn't playing here." },
+                'white-space': { title: '"White Space"', color: '#6B7280', content: "The 'Gentle/Holistic' & 'Premium/Cult Status' quadrant is unoccupied. A potential safe haven." },
+                'bridge-pos': { title: '"Bridge Position" Gap', color: '#EAB308', content: "The real gap: a 'bridge' between 'Gentle/Halal' (Wardah's core trust) and 'Clinical/Ingredient' (Gen Z's interest)." }
+            };
+            const panelMap1 = document.getElementById('analysis-content-map1');
+            const mapContainer1 = document.getElementById('map1-container');
+            const defaultContentMap1 = panelMap1.innerHTML;
+
+            function updateAnalysisMap1(key) {
+                const data = analysisDataMap1[key];
+                if (!data) {
+                    panelMap1.innerHTML = defaultContentMap1;
+                    return;
+                }
+                panelMap1.innerHTML = `<h3 class="text-xl font-bold flex items-center" style="color: ${data.color};"><span class="w-4 h-4 rounded-full mr-3" style="background-color: ${data.color};"></span>${data.title}</h3><p class="mt-2">${data.content}</p>`;
+            }
+
+            mapContainer1.addEventListener('click', (e) => {
+                const brandEl = e.target.closest('[data-brand]');
+                const zoneEl = e.target.closest('[data-zone]');
+                if (brandEl) updateAnalysisMap1(brandEl.dataset.brand);
+                else if (zoneEl) updateAnalysisMap1(zoneEl.dataset.zone);
+                else if (e.target === mapContainer1) updateAnalysisMap1(null);
+            });
+        }
+
+        <!-- === LOGIKA PETA 2 === -->
+        function initMap2() {
+            const analysisDataMap2 = {
+                'wardah-insta': { title: 'Wardah (Instaperfect)', color: '#4A90E2', content: "Positioned in 'Makeup-First' & 'Basic/Moisturizing'. This is a classic cushion/tint." },
+                'esqa': { title: 'ESQA (Serum Tint)', color: '#E57373', content: "Positioned in 'Makeup-First' & 'Active/Treatment-Grade'. Successfully communicated 'five skincare ingredients'." },
+                'skintific': { title: 'Skintific (Cushion)', color: '#D0021B', content: "Similar to ESQA, 'Makeup-First' & 'Active/Treatment-Grade'. Strong on active ingredients." },
+                'skinimalism': { title: '"Skinimalism" Gap', color: '#3B82F6', content: 'The "Hybrid" trend is currently interpreted as "makeup with skincare". All players are on the Makeup-First half.' },
+                'white-space': { title: '"White Space"', color: '#6B7280', content: "The entire 'Skincare-First' half of the map is empty. This is a massive market gap." },
+                'lightplus-absence': { title: "Critical Finding: 'Light+ by Wardah'", color: '#EAB308', content: "Critical finding: 'Light+ by Wardah' is not on this map. As a 'brightening' (skincare) line, it is not positioned or communicated as a 'hybrid' product. It's missing the entire hybrid market trend." }
+            };
+            const panelMap2 = document.getElementById('analysis-content-map2');
+            const mapContainer2 = document.getElementById('map2-container');
+            const defaultContentMap2 = panelMap2.innerHTML;
+
+            function updateAnalysisMap2(key) {
+                const data = analysisDataMap2[key];
+                if (!data) {
+                    panelMap2.innerHTML = defaultContentMap2;
+                    return;
+                }
+                panelMap2.innerHTML = `<h3 class="text-xl font-bold flex items-center" style="color: ${data.color};"><span class="w-4 h-4 rounded-full mr-3" style="background-color: ${data.color};"></span>${data.title}</h3><p class="mt-2">${data.content}</p>`;
+            }
+
+            mapContainer2.addEventListener('click', (e) => {
+                const brandEl = e.target.closest('[data-brand]');
+                const zoneEl = e.target.closest('[data-zone]');
+                if (brandEl) updateAnalysisMap2(brandEl.dataset.brand);
+                else if (zoneEl) updateAnalysisMap2(zoneEl.dataset.zone);
+                else if (e.target === mapContainer2) updateAnalysisMap2(null);
+            });
+        }
     </script>
+
 </body>
 </html>
