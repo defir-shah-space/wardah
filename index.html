@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light+ Brand Repositioning Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (Stone, Teal Accent) -->
+    <!-- Application Structure Plan: A single-page, top-to-bottom narrative structure. This was chosen because the source report is a strategic argument (Problem -> Analysis -> Solution). This flow guides the user logically through the diagnosis, the visual evidence (the map), and the proposed strategic pivot. The key interaction is a button to reveal the new "Smart Collaborator" position on the map, providing a powerful before-and-after visualization. -->
+    <!-- Visualization & Content Choices: Report Info: Perceptual Map (X: Price/Science, Y: Authoritative/Relatable). Goal: Visually prove the "squeezed middle" problem and identify the "white space". Viz/Presentation: Chart.js Scatter plot (Canvas). Interaction: A "Reveal Position" button adds the new "Smart Collaborator" data point to the chart via JS, triggering chart.update(). Justification: This directly visualizes the report's central argument, making the strategic opportunity tangible. Other text is in semantic HTML blocks. CONFIRMS NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfcfb;
+            color: #292524;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 500px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .tagline {
+            background-color: #f5f5f4;
+            border-left: 4px solid #f97316;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+        .tagline-new {
+            background-color: #ccfbf1;
+            border-left: 4px solid #0d9488;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .formula-card {
+            background-color: #f0fdfa;
+            border: 1px solid #5eead4;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        
+        <header class="text-center mb-12 md:mb-16">
+            <h1 class="text-3xl md:text-5xl font-bold text-stone-900 tracking-tight">
+                Light+ Brand Repositioning
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-stone-600">
+                An interactive analysis of the strategic pivot to "Smart Collaborator".
+            </p>
+        </header>
+
+        <main class="space-y-12 md:space-y-16">
+
+            <!-- Section 1: The Core Problem -->
+            <section id="problem">
+                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
+                    1. The Diagnosis: A "Squeezed Middle"
+                </h2>
+                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
+                    <p>
+                        Our analysis confirms Light+ is in a vulnerable "squeezed middle" position. It is trapped in a "red ocean" between dominant "Clinical Titans" (like Skintific) and high-volume "Value Leaders" (like Garnier), while simultaneously causing brand confusion and cannibalization with its parent company, Wardah.
+                    </p>
+                    <p>
+                        The root cause is a catastrophic failure in positioning, not product. The brand's valuable "smart" assets (Nano Niacinamide, Blue Light Protection) and its unique "relatable" asset (the Gen Z co-creation story) are completely obscured by its current tagline.
+                    </p>
+                    <blockquote class="tagline">
+                        <p class="text-xl md:text-2xl font-semibold text-stone-700 italic">"Every Side Has Its Light"</p>
+                        <p class="mt-2 text-stone-600 font-medium">— Current Tagline: Poetic, Ambiguous, Ineffective</p>
+                    </blockquote>
+                    <p>
+                        This ambiguity prevents the brand from communicating any clear value, forcing it to compete on a generic "Halal" message which is now considered "table stakes" in the market.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 2: The Competitive Landscape -->
+            <section id="landscape">
+                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
+                    2. The Landscape: Visualizing the Gap
+                </h2>
+                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
+                    <p>
+                        The following perceptual map provides visual proof of this market failure and the clear opportunity that exists. The map plots competitor brands along the two key dimensions Gen Z uses for evaluation:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong class="font-semibold">Value Proposition (X-Axis):</strong> From "Price-Driven" (left) to "Science-Driven" (right).</li>
+                        <li><strong class="font-semibold">Brand Persona (Y-Axis):</strong> From "Bottom-Up/Relatable" (bottom) to "Top-Down/Authoritative" (top).</li>
+                    </ul>
+                    <p>
+                        The chart shows saturated quadrants for "Clinical Titans" and "Price-Driven Besties". Light+'s current, ambiguous position leaves it stranded in the middle, while a valuable "white space" remains completely unoccupied.
+                    </p>
+                </div>
+
+                <div class="mt-8">
+                    <div class="chart-container bg-white rounded-lg shadow-lg p-4">
+                        <canvas id="perceptualMap"></canvas>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <button id="revealButton" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-teal-700 transition-all duration-300 transform hover:scale-105">
+                        Click to Reveal the "Smart Collaborator" Position
+                    </button>
+                </div>
+            </section>
+
+            <!-- Section 3: The Strategic Pivot -->
+            <section id="pivot">
+                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
+                    3. The Pivot: The "Smart Collaborator"
+                </h2>
+                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
+                    <p>
+                        The unoccupied bottom-right quadrant represents our "white space." This is the "Smart Collaborator": a consumer persona who wants the high efficacy and science of an expert brand, but demands the authenticity and relatability of a peer.
+                    </p>
+                    <p>
+                        We must pivot from the generic "Halal" message to fill this clear market gap. The new positioning will be built on a simple, powerful, and defensible identity:
+                    </p>
+                    <p class="text-center text-xl md:text-2xl font-bold text-teal-700 bg-teal-50 p-4 rounded-md">
+                        Halal + Gen Z Authentic + High Efficacy
+                    </p>
+                    <p>
+                        This new position is unique, highly valuable, and solves all internal cannibalization risks by giving Light+ a clear and distinct identity from Wardah.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 4: The New Formula -->
+            <section id="formula">
+                <h2 class="text-2xl md:text-3xl font-bold text-stone-800 border-b-2 border-orange-500 pb-2">
+                    4. The Formula: "Light + You"
+                </h2>
+                <div class="mt-6 text-base md:text-lg text-stone-700 space-y-4">
+                    <p>
+                        This entire repositioning strategy is distilled into one active, memorable, and defensible tagline. This new tagline *is* our formula:
+                    </p>
+                    <blockquote class="tagline-new">
+                        <p class="text-3xl md:text-4xl font-bold text-stone-800 text-center">"Light + You"</p>
+                    </blockquote>
+                    <p>
+                        It is a simple equation that communicates our entire brand story, combining our two core assets:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="formula-card">
+                            <span class="text-6xl">💡</span>
+                            <h3 class="text-3xl font-bold text-teal-800 mt-2">Light</h3>
+                            <p class="text-lg text-teal-700 mt-2">
+                                Represents our "smart" assets: hybrid science, Nano Niacinamide, and Blue Light Protection.
+                            </p>
+                        </div>
+                        <div class="formula-card">
+                            <span class="text-6xl">👥</span>
+                            <h3 class="text-3xl font-bold text-teal-800 mt-2">You</h3>
+                            <p class="text-lg text-teal-700 mt-2">
+                                Represents our "relatable" asset: our authentic, bottom-up Gen Z co-creation community.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-16 md:mt-24 border-t border-stone-300 pt-8 text-center">
+            <p class="text-sm text-stone-500">End of Analysis. This interactive report demonstrates the strategic pivot for Light+.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('perceptualMap').getContext('2d');
+
+            const competitorData = {
+                label: 'Current Market',
+                data: [
+                    { x: 8, y: 7, r: 15, label: 'Skintific (Clinical Titan)' },
+                    { x: -6, y: 5, r: 12, label: 'Garnier (Value Leader)' },
+                    { x: -7, y: -6, r: 10, label: 'Emina (Price-Driven Bestie)' },
+                    { x: 2, y: 6, r: 10, label: 'Wardah (Parent Brand)' },
+                    { x: 1, y: 2, r: 8, label: 'Light+ (Current Position)' }
+                ],
+                backgroundColor: 'rgba(113, 113, 122, 0.6)',
+                borderColor: 'rgba(82, 82, 91, 1)',
+                borderWidth: 1
+            };
+
+            const newData = {
+                label: 'Smart Collaborator (New Position)',
+                data: [
+                    { x: 7, y: -7, r: 20, label: 'Light + You (Smart Collaborator)' }
+                ],
+                backgroundColor: 'rgba(13, 148, 136, 0.7)',
+                borderColor: 'rgba(15, 118, 110, 1)',
+                borderWidth: 2,
+            };
+
+            const drawQuadrantLabels = (chart) => {
+                const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
+                ctx.save();
+                
+                const xCenter = x.getPixelForValue(0);
+                const yCenter = y.getPixelForValue(0);
+
+                ctx.strokeStyle = '#e5e5e5';
+                ctx.lineWidth = 1;
+                
+                ctx.beginPath();
+                ctx.moveTo(xCenter, top);
+                ctx.lineTo(xCenter, bottom);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(left, yCenter);
+                ctx.lineTo(right, yCenter);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(68, 64, 60, 0.6)';
+                ctx.font = '600 12px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                ctx.fillText('Clinical Titans', (xCenter + right) / 2, (top + yCenter) / 2);
+                ctx.fillText('Value Leaders', (left + xCenter) / 2, (top + yCenter) / 2);
+                ctx.fillText('Price-Driven Besties', (left + xCenter) / 2, (yCenter + bottom) / 2);
+                
+                ctx.fillStyle = '#0d9488';
+                ctx.font = '700 14px Inter';
+                ctx.fillText('THE WHITE SPACE', (xCenter + right) / 2, (yCenter + bottom) / 2);
+                
+                ctx.restore();
+            };
+
+            const mapChart = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [competitorData]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '← Price-Driven  |  Value Proposition  |  Science-Driven →',
+                                font: { size: 14, weight: '600' },
+                                color: '#57534e'
+                            },
+                            min: -10,
+                            max: 10,
+                            ticks: { display: false },
+                            grid: { display: false }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '← Bottom-Up/Relatable  |  Brand Persona  |  Top-Down/Authoritative →',
+                                font: { size: 14, weight: '600' },
+                                color: '#57534e'
+                            },
+                            min: -10,
+                            max: 10,
+                            ticks: { display: false },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 12 },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.label;
+                                }
+                            },
+                            bodyFont: { size: 14, weight: 'bold' },
+                            padding: 12,
+                            backgroundColor: '#292524',
+                            titleColor: '#fdfcfb',
+                            bodyColor: '#fdfcfb',
+                            displayColors: false
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'quadrantLabels',
+                    afterDraw: drawQuadrantLabels
+                }]
+            });
+
+            const revealButton = document.getElementById('revealButton');
+            let isRevealed = false;
+
+            revealButton.addEventListener('click', () => {
+                if (isRevealed) return;
+
+                mapChart.data.datasets.push(newData);
+                mapChart.update();
+                
+                revealButton.textContent = '✓ "Smart Collaborator" Position Revealed';
+                revealButton.classList.remove('bg-teal-600', 'hover:bg-teal-700', 'hover:scale-105');
+                revealButton.classList.add('bg-orange-500', 'cursor-default');
+                isRevealed = true;
+            });
+        });
+    </script>
+</body>
+</html>
